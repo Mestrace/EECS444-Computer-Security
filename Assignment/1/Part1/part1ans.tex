@@ -1,0 +1,173 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\newcommand{\numpy}{{\tt numpy}}    % tt font for numpy
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C
+}
+
+
+\topmargin -.5in
+\textheight 9in
+\oddsidemargin -.25in
+\evensidemargin -.25in
+\textwidth 7in
+
+\begin{document}
+
+% ========== Edit your name here
+\author{Yida Liu}
+\title{EECS 444 Homework 1 Part 1}
+\maketitle
+
+\section{Problem 1}
+
+In-class exercise.
+
+\section{Problem 2}
+
+\subsection{What are the ouputs for the corresponding inputs?}
+\begin{description}
+    \item Input 1\par
+    The output is \lstinline{String after concatenation: |dest+src|}
+    \item Input 2\par
+    The output is \begin{lstlisting}
+    *** stack smashing detected ***: <unknown> terminated
+    Aborted (core dumped)
+    \end{lstlisting}
+\end{description}
+
+\subsection{Code Fix} \label{codefix}
+For the above code, there are several vulnerabilities. For example, the usage of unsafe \lstinline{gets} and \lstinline{strcat}, which might raise buffer overflow and heap corruption. We fixed the problem by adding the following changes:
+\begin{enumerate}
+    \item Increase the buffer size of \lstinline{dest} \par
+    The main purpose of the program is to concatenate the two user input string. Therefore, it is unreasonable to have the two buffer the same size. Therefore, if we want to limit the user input to 30 characters (per line), the destination buffer should be twice the size of that, 60.
+    
+    \item Replace \lstinline{gets} with safer \lstinline{fgets} \par
+    \lstinline{fgets} limits the maximum number of characters to be read from the input stream, which is considered a safer function to use to read from \lstinline{stdin}. 
+    
+    \item Flush the \lstinline{stdin} for the following \lstinline{fgets} on the second buffer. \par
+    The problem is that if there is more to be read in \lstinline{stdin} after the first \lstinline{fgets}, the second \lstinline{fgets} will directly read the rest from \lstinline{stdin}, instead of blocking until the user enters the second input. Therefore, we manually flush the \lstinline{stdin} by continuous reading characters until an \lstinline{EOF} or \lstinline{'\n'} is reached. 
+    
+    \item Check the size of concatenation from \lstinline{src} to \lstinline{dest}\par
+    We check the remaning size of buffer \lstinline{dest} to how many extra character can be concatenated and used \lstinline{strncat} for concat if there is at least 1 empty space. At the same time, we also compare the string length of \lstinline{src} and the remaining length in \lstinline{dest} and pick the smaller for the parameters to avoid possible out-of-bound problem.
+    \item Remove trailing white space from \lstinline{fgets} \par
+\end{enumerate}
+The following code is the complete program after applying the aforementioned updates to the give code. 
+\begin{lstlisting}[style=CStyle]
+#include <stdio.h>
+#include <string.h>
+// 4. Define min
+#ifndef min
+    #define min(a,b) ((a) < (b) ? (a) : (b))
+#endif
+
+int main() {
+    // 1. Change buffer size
+    // input length on each line
+    int IN_LEN = 30;
+    // total input length, which is the size of dest
+    int TOT_IN_LEN = IN_LEN * 2;
+    
+    char dest[TOT_IN_LEN], src[IN_LEN];
+    
+    // 2. Replace gets with fgets
+    fgets(src, IN_LEN, stdin);
+    
+    // 5. Remove trailing newline if there is any
+    char *nl;
+    if ((nl=strchr(src, '\n')) != NULL) *nl = '\0';
+
+    // 3. Flush stdin after first read
+    if (!strchr(src, '\n')){
+        int c;
+        while ((c=getchar()) != '\n' && c != EOF);
+    }
+    
+    // 2. Replace gets with fgets
+    fgets(dest, IN_LEN, stdin);
+    
+    // 5. Remove trailing newline if there is any
+    if ((nl=strchr(dest, '\n')) != NULL) *nl = '\0';
+
+    // 4. Check size and use strncat
+    int rem_char_in_dest = sizeof(dest) - strlen(dest) - 1;
+    if ( rem_char_in_dest > 0 ) {
+        strncat(dest, src, min(rem_char_in_dest, strlen(src));
+    }
+    
+    printf("String after concatenation: |%s|", dest);
+    return(0);
+}
+\end{lstlisting}
+
+\subsection{Abuse Cases}
+We provide a list of illegal inputs (and / or their combinations) for \lstinline{src} and \lstinline{dest} and explain how our revised program defend them.
+\begin{itemize}
+    \item Long input (length $\geq$ \lstinline{IN_LEN}) \par
+    \lstinline{fgets} will only capture the first \lstinline{IN_LEN} number of characters; Additional characters in \lstinline{stdin} is removed as indicated in Section \ref{codefix} Fix. 3; Section \ref{codefix} Fix. 4 makes sure that \lstinline{strncat} will not have out-of-bound accesses of string elements. 
+    
+    \item Empty input (length = 0, newline character only) \par
+    Section \ref{codefix} Fix. 5 removes the trailing newline when obtaining string from \lstinline{fgets}.
+\end{itemize}
+
+\begin{table}[b]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Numeric Type   & Bytes & Range                                         \\
+\hline
+unsigned short & 2     & $[0, 65535]$                                  \\
+int            & 4     & $[-2147483648, 2147483647]$                   \\
+long           & 8     & $[-9223372036854775808, 9223372036854775807]$ \\
+\hline
+\end{tabular}
+\caption{Range of Common Numeric Types}
+\label{tab:1}
+\end{table}
+
+\section{Problem 3: Integer Overflow}
+
+The defect for this function is that it assumes the positivity of \lstinline{len1} and \lstinline{len2} without actually validating it or using data types that enforces positive input. The following case will break the code: when \lstinline{len1 = 2147483647} and \lstinline{len2 = -2147482625 = 1022 - len1}
+\begin{enumerate}
+    \item the sanity check at line 1 will fail to detect the sizes
+    \item the buffer initializer will get \lstinline{pBuf} of size 1023 
+    \item the \lstinline{memcpy} from s1 to \lstinline{pBuf} will cause index out of bound
+    \item the \lstinline{memcpy} from s2 to \lstinline{pBuf + len1} will copy a large chunk of data that might or might not belong to s2 to an out-of-bound location
+\end{enumerate}
+
+\section{Problem 4: Integer Overflow 2}
+
+As from table \ref{tab:1}, we see that the length of each datatype are different. In line 2, there is an downsizing from signed long to usngiend short; In line 8, function \lstinline{memcpy} actually takes in an unsigned integral type for size, instead of signed. For this two part, overflow could happen that influence the behavior of the code. Suppose \lstinline{cbBuf = 2147483648 = INT_MAX + 1},
+\begin{enumerate}
+    \item \lstinline{cbCalculatedBufSize} will become the lower word of \lstinline{cbBuf}
+    \item \lstinline{cbBuf} will be interpreted as unsigned long when passing in \lstinline{memcpy}.
+\end{enumerate}
+
+
+\end{document}
