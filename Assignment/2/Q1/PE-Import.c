@@ -22,7 +22,7 @@ int isFileExists(const char *path)
 
 void main()
 {
-    const char *filepath = "./PE-1.txt";
+    const char *filepath = "/PE-1.txt";
     const char *words = "I want to learn PE file format!";
 
     FILE *file;
@@ -55,6 +55,9 @@ void main()
         if (strstr(buffer, words) == NULL) {
             // append the words to the back of the file
             fputs(words, file);
+        }
+        else{
+            printf("%s", buffer);
         }
     }
     else
