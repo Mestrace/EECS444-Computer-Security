@@ -73,6 +73,12 @@ We used the \lstinline{gcc} compiler included in \lstinline{mingw-x86_64} to com
 
 We used Exeinfo PE to check the import table. Here is a screenshot output of the Import Table.
 
+\begin{center}
+    % \includegraphics[width=\textwidth,scale=0.5]
+    \includegraphics[width=\textwidth]{Assignment/2/Q1/sc_import_table_pe.png}
+\end{center}
+
+
 \section{Original vs. Packed}
 
 \subsection{Use UPX to pack PE file}
@@ -87,6 +93,9 @@ upx -9 PE-Import.exe -o PE-Import-upx.exe
 \subsection{Check the Import Table of the Packed Executable}
 
 Here is a screenshot output of the Import Table of \lstinline{./PE-Import-upx.exe} 
+\begin{center}
+    \includegraphics[width=\textwidth]{Assignment/2/Q1/sc_import_table_pe_upx.png}
+\end{center}
 
 \subsection{Use UPX to unpack the Packed Executable}
 
@@ -97,6 +106,9 @@ upx -d PE-Import-upx.exe -o PE-Import-upx-unpacked.exe
 \end{lstlisting}
 
 Here is a screenshot output of the Import Table of \lstinline{./PE-Import-upx-unpacked.exe} 
+\begin{center}
+    \includegraphics[width=\textwidth]{Assignment/2/Q1/sc_import_table_pe_upx_unpacked.png}
+\end{center}
 
 \section{Fool Anti-Malware Scanner}
 
