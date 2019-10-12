@@ -114,26 +114,28 @@ Here is a screenshot output of the Import Table of \lstinline{./PE-Import-upx-un
 
 First, we used the Virustotal to scan the original \lstinline{PE-Import.exe}. Virustotal reports that 1 out of 70 engines reported unsafe of this program. 
 
-Our technique is quite simple and straight forward. We used \href{http://stunnix.com/prod/cxxo/}{Stunnix cxx-obfus tools} to obfuscate the source code and compile to executable. 
+Our technique is quite simple and straight forward. We use the privious \lstinline{./PE-Import-upx.exe} and use PELock to pack an additional layer of protection in \lstinline{./PE-Import-upx-pelock.exe} . Our justification is that virus / trojan often employes multiple layers of packing to hide the actual code underneath it. This file was detected malicious and dangerous by 28 out of 70 engines in VirusTotal. 
 
-\begin{lstlisting}[language=bash]
-# Use Stunnix to obfuscate the program
-cxx-obfus PE-Import.c -o PE-Import.obfs.c -x xpg4
-# Compile to exe
-gcc PE-Import.obfs.c -o PE-Import.obfs.exe
-\end{lstlisting}
+% Our technique is quite simple and straight forward. We used \href{http://stunnix.com/prod/cxxo/}{Stunnix cxx-obfus tools} to obfuscate the source code and compile to executable. 
 
-The executable application passed the virus check of VirusTotal.
+% \begin{lstlisting}[language=bash]
+% # Use Stunnix to obfuscate the program
+% cxx-obfus PE-Import.c -o PE-Import.obfs.c -x xpg4
+% # Compile to exe
+% gcc PE-Import.obfs.c -o PE-Import.obfs.exe
+% \end{lstlisting}
 
-\subsection{Additional Ideas}
-We also imagined additional ways / ideas to hide the malicious identity of our application.
-\begin{enumerate}
-    \item Self-Interpreting \par
-    Our program could be factored into an interpreter with specialized instruction set / opcodes and a program written in the specific interpreter language. Without elaboration, it would be hard to reverse-engineered. In fact, \href{http://tigress.cs.arizona.edu/index.html}{tigress} implements such an idea to obfuscate C program.
-    \item Intermediate Representation\par
-    We could convert the c program to \href{https://llvm.org/docs/index.html}{LLVM Intermediate Representation(IR)}, an platform-independent low-level assembly language and perform additional obfuscation from there, after which the obfuscated IR code could be compiled to machine code at any supported hardware platforms. 
+% The executable application passed the virus check of VirusTotal.
+
+% \subsection{Additional Ideas}
+% We also imagined additional ways / ideas to hide the malicious identity of our application.
+% \begin{enumerate}
+%     \item Self-Interpreting \par
+%     Our program could be factored into an interpreter with specialized instruction set / opcodes and a program written in the specific interpreter language. Without elaboration, it would be hard to reverse-engineered. In fact, \href{http://tigress.cs.arizona.edu/index.html}{tigress} implements such an idea to obfuscate C program.
+%     \item Intermediate Representation\par
+%     We could convert the c program to \href{https://llvm.org/docs/index.html}{LLVM Intermediate Representation(IR)}, an platform-independent low-level assembly language and perform additional obfuscation from there, after which the obfuscated IR code could be compiled to machine code at any supported hardware platforms. 
     
-\end{enumerate}
+% \end{enumerate}
 
 
 
