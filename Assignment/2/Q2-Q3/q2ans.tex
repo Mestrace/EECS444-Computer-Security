@@ -1,0 +1,130 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\newcommand{\numpy}{{\tt numpy}}    % tt font for numpy
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true}
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C
+}
+
+
+\topmargin -.5in
+\textheight 9in
+\oddsidemargin -.25in
+\evensidemargin -.25in
+\textwidth 7in
+
+\begin{document}
+
+% ========== Edit your name here
+\author{Yida Liu}
+\title{EECS 444 Homework 2 Part 2}
+\maketitle
+
+\section{Question 2}
+Here we execute the program step-by-step to derive the final answer.
+
+\begin{enumerate}
+    \item Start of the program
+    \item \lstinline{MOV AL, X} \par
+    Load X into AL. AL = 25 = 0b00011001
+    \item \lstinline{MUL AL} \par
+    Byte-multiply AL by source and store in AX. AX = 25*25 = 625 = 0b00000010 01110001
+    \item \lstinline{MOV BX, 0} \par
+    Load 0 in BX. BX = 0
+    \item \lstinline{MOV BL, Y} \par
+    Load Y in BL, BL = 32 = 0b00100000
+    \item \lstinline{ADD BL, BL} \par 
+    Add BL by BL and store in BL. BL = 32 + 32 = 64 = 0b01000000; No overflow, therefore CF = 0
+    \item \lstinline{ADC BH, 0} \par 
+    Add BH by zero and carry-in bit. BH = 0 + CF = 0
+    \item \lstinline{ADD BL, Y} \par 
+    Add BL by Y and store in BL. BL = 64 + 32 = 96 = 0b01100000; No overflow, therefore CF = 0
+    \item \lstinline{ADC BH, 0} \par
+    Add BH by zero and carry-in bit. BH = 0 + CF = 0
+    \item \lstinline{SUB AX, BX}\par
+    Sub AX by BX and store in AX, AX = AX - BH:BL = 625 - 96 = 529 = 0b00000010 00010001
+    \item \lstinline{SHR AX, 1}\par
+    Right-shift AX by 1, AX = AX >> 1 = 0b00000001 00001000 = 264
+    \item \lstinline{MOV Z,AX}\par
+    Load AX into Z, Z = AX = 264
+    \item End of the program\par
+\end{enumerate}
+
+The functionality of this program is to compute $Z = (X^2 - 3Y) / 2$, where X and Y are 8-bit integers and Z is 16-bit integers. 
+
+\section{Question 3}
+
+Here we execute the program step-by-step to derive the final answer.
+% template:     \item \lstinline{}\par 
+\begin{enumerate}
+    \item Start of the program \par
+    \item \lstinline{MOV ecx, 3}\par 
+    Load 3 into ecx, ecx = 3.
+    \item \lstinline{PUSH ecx} \par
+    Push ecx in to the stack frame.
+    \item \lstinline{XOR esi, esi} \par
+    XOR esi with esi, esi = 0.
+    \item \lstinline{MOV ecx, 3}\par 
+    Load 3 into ecx, ecx = 3.
+    \item \lstinline{MOV ebx, array[esi]}\par
+    Load array[esi] into ebx, ebx = array[esi] = array[0] = 34.
+    \item \lstinline{CMP ebx, array[esi 4]}\par
+    Compare ebx with array[esi+4] and set CF accordingly, CF = ebx < array[esi + 4] = 34 < 12 = 0
+    \item \lstinline{JB L1}\par
+    Jump to L1 if CF = 1; Since CF = 0, go to next line.
+    \item \lstinline{XCHG ebx, array[esi 4]}\par
+    Exchange the value of ebx and array[esi+4], ebx = 12, array[esi+4] = 34, array = [34, 34, 3, 18]
+    \item \lstinline{MOV array[esi], ebx}\par
+    Load ebx into array[esi], array[esi] = array[0] = ebx = 12, array = [12, 34, 3, 18]
+    \item \lstinline{ADD esi 4}\par
+    Add esi by 1, esi = esi + 4 = 4, CF=0.
+    \item \lstinline{LOOP L0}\par
+    Sub ecx by 1, jump to lable if ecs != 1. ecx = 2\par
+    ...(Omitted, see explanation below)
+\end{enumerate}
+
+This program basically consists of doubly nested loop L2 and L1, and executes 3 * 3 = 9 times in total. In each L1 iteration, adjacent elements are swapped if larger elements is in the front; In each L2 iteration, L1 is executed for the whole array. At last, all elements are printed by string formatting \lstinline{"%s\n"}. 
+
+Rewrite the program structure in C.
+
+\begin{lstlisting}[style=CStyle]
+// start of the program
+for(i=3;i>0;i--){
+    k = 0;
+    for(j=3;j>0;j--){
+        if(array[k] > array[k+1]){
+            swap(array[k], array[k+1]);
+        }
+    }
+}
+//print array
+\end{lstlisting}
+
+As we can clearly see, this program is equivalent to bubble sort.
+
+\end{document}
