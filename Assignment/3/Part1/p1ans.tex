@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\newcommand{\numpy}{{\tt numpy}}    % tt font for numpy
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C,
+}
+
+\lstset{
+xleftmargin=.1\textwidth, xrightmargin=.1\textwidth
+}
+
+
+\topmargin -.5in
+\textheight 9in
+\oddsidemargin -.25in
+\evensidemargin -.25in
+\textwidth 7in
+
+\begin{document}
+
+
+% ========== Edit your name here
+\author{Yida Liu}
+\title{EECS 444 Homework 3 Part 1}
+\maketitle
+
+\section{Crackme}
+
+We change the equality condition in line 00401243 from "JE" to "JNE", which will bypass the conditions and jump to the success dialog.
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+00401243     75 07          JNE SHORT CRACKME.0040124C ; Original JE
+00401245   . E8 18010000    CALL CRACKME.00401362
+0040124A   .^EB 9A          JMP SHORT CRACKME.004011E6
+0040124C   > E8 FC000000    CALL CRACKME.0040134D ; jump to success dialog
+\end{lstlisting}
+
+\section{Crackme 2}
+
+By analyzing the assembly, we realize that the original code performs the following, for a given name
+\begin{enumerate}
+    \item Sum the uppercase ASCII value of the input names.
+    \item XOR 0x5678
+    \item XOR 0x1234
+\end{enumerate}
+After this, a number is generated as the password.
+
+\end{document}
